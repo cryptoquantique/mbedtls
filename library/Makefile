@@ -204,6 +204,8 @@ OBJS_X509= \
 
 OBJS_TLS= \
 	  debug.o \
+	  fips202.o \
+	  fips203ipd.o \
 	  mps_reader.o \
 	  mps_trace.o \
 	  net_sockets.o \

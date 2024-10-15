@@ -108,6 +108,8 @@ set(src_x509
 
 set(src_tls
     debug.c
+	fips202.c
+	fips203ipd.c
     mps_reader.c
     mps_trace.c
     net_sockets.c
