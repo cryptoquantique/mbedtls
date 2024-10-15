@@ -1523,14 +1523,14 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
         } 
-		else if(handshake->offered_group_id == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
-		{
-			psa_algorithm_t alg = PSA_ALG_ECDH;
-			psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+        else if(handshake->offered_group_id == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
+        {
+            psa_algorithm_t alg = PSA_ALG_ECDH;
+            psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
             status = psa_get_key_attributes(handshake->xxdh_psa_privkey,
-                                            &key_attributes);
+                                        &key_attributes);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
             }
@@ -1540,24 +1540,19 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             if (shared_secret == NULL) {
                 return MBEDTLS_ERR_SSL_ALLOC_FAILED;
             }
-			
-			//Need to retrieve the KEM768's SS as it is reset by psa_raw_key_agreement().
-			uint8_t tmp_kem768_ss[32];
-			memcpy(tmp_kem768_ss, &handshake->xxdh_psa_peerkey[32], 32);
-            status = psa_raw_key_agreement(
-                alg, handshake->xxdh_psa_privkey,
-                handshake->xxdh_psa_peerkey, 32,
-                shared_secret, 32, &shared_secret_len);
-			memcpy(&shared_secret[32], tmp_kem768_ss, 32);
-			shared_secret_len += 32;
-			int i;
-			printf("\nFinal result at end of handshake of X25519MLKEM768draft00 SS with length of %u\n", shared_secret_len);
-			for(i=0; i<64; i++) printf("%02x", shared_secret[i]);
-			printf("\n");
+
+            //Need to retrieve the KEM768's SS as it is reset by psa_raw_key_agreement().
+            uint8_t tmp_kem768_ss[32];
+            memcpy(tmp_kem768_ss, &handshake->xxdh_psa_peerkey[32], 32);
+            status = psa_raw_key_agreement(alg, handshake->xxdh_psa_privkey,handshake->xxdh_psa_peerkey, 32, shared_secret, 32, &shared_secret_len);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
                 MBEDTLS_SSL_DEBUG_RET(1, "psa_raw_key_agreement", ret);
                 goto cleanup;
+            }
+            else{
+                memcpy(&shared_secret[32], tmp_kem768_ss, 32);
+                shared_secret_len += 32;
             }
 
             status = psa_destroy_key(handshake->xxdh_psa_privkey);
@@ -1568,7 +1563,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             }
 
             handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;			
-		} 
+        } 
 		else {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Group not supported."));
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;

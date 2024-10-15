@@ -291,7 +291,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_get_default_group_id(ssl,
                                                             &group_id));
     }
-	group_id = MBEDTLS_SSL_TLS_GROUP_X25519KYBER768;//SM I have forced it to use this X25519KYBER76Draft00
+    group_id = MBEDTLS_SSL_TLS_GROUP_X25519KYBER768;//SM I have forced it to use this X25519KYBER76Draft00
 
     /*
      * Dispatch to type-specific key generation function.
@@ -328,17 +328,17 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
         /* Write key_exchange_length */
         MBEDTLS_PUT_UINT16_BE(key_exchange_len, group, 2);
     }  
-	else if((group_id == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768))
-	{
-		MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: adding key share extension for MBEDTLS_SSL_TLS_GROUP_X25519KYBER768"));
-		unsigned char *group = p;
-		size_t key_exchange_len = 0;
-		MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
+    else if((group_id == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768))
+    {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: adding key share extension for MBEDTLS_SSL_TLS_GROUP_X25519KYBER768"));
+        unsigned char *group = p;
+        size_t key_exchange_len = 0;
+        MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
         p += 4;
-		mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
+        mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
             ssl, group_id, p, end, &key_exchange_len);
-		p += key_exchange_len;
-		/* Write group */
+        p += key_exchange_len;
+        /* Write group */
         MBEDTLS_PUT_UINT16_BE(group_id, group, 0);
         /* Write key_exchange_length */
         MBEDTLS_PUT_UINT16_BE(key_exchange_len, group, 2);
@@ -464,6 +464,7 @@ static int ssl_tls13_parse_hrr_key_share_ext(mbedtls_ssl_context *ssl,
     return MBEDTLS_ERR_SSL_BAD_CONFIG;
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 }
+
 #include "fips203ipd.h"
 #include "fips202.h"
 extern struct X25519Kyber768_ctx *fips203ipd_kem;
@@ -523,29 +524,31 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
     }
 	else if(group == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
 	{
-		ret = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-		
-		p += 2;//length
-		const unsigned char *x25519key = p;
-		p += 32;//KEM public key start position
-		
-		fips203ipd_kem768_decaps(fips203ipd_kem->fips203ipd_ss, p, fips203ipd_kem->fips203ipd_dk);
-		
-		uint8_t k_and_cthash[64];
-		uint8_t kem_ss[32];
-		memcpy(k_and_cthash, fips203ipd_kem->fips203ipd_ss, 32);
-		
-		ret = mbedtls_sha3(MBEDTLS_SHA3_256, p, end-p, &k_and_cthash[32], 32);
-		shake256(kem_ss, 32, k_and_cthash, 64);
-		
-		mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-		
-		memcpy(handshake->xxdh_psa_peerkey, x25519key, 32);
-		memcpy(&handshake->xxdh_psa_peerkey[32], kem_ss, 32);
-		handshake->xxdh_psa_peerkey_len = 64;
-		mbedtls_zeroize_and_free(fips203ipd_kem, sizeof(struct X25519Kyber768_ctx));//free(fips203ipd_kem);
+        ret = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
 
-		return 0;
+        p += 2;//length
+        const unsigned char *x25519key = p;
+        p += 32;//KEM public key start position
+
+        fips203ipd_kem768_decaps(fips203ipd_kem->fips203ipd_ss, p, fips203ipd_kem->fips203ipd_dk);
+
+        uint8_t k_and_cthash[64];
+        uint8_t kem_ss[32];
+        memcpy(k_and_cthash, fips203ipd_kem->fips203ipd_ss, 32);
+
+        ret = mbedtls_sha3(MBEDTLS_SHA3_256, p, end-p, &k_and_cthash[32], 32);
+        if(ret != 0) 
+            return ret;
+        shake256(kem_ss, 32, k_and_cthash, 64);
+
+        mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+        memcpy(handshake->xxdh_psa_peerkey, x25519key, 32);
+        memcpy(&handshake->xxdh_psa_peerkey[32], kem_ss, 32);
+        handshake->xxdh_psa_peerkey_len = 64;
+        mbedtls_zeroize_and_free(fips203ipd_kem, sizeof(struct X25519Kyber768_ctx));//free(fips203ipd_kem);
+
+        return 0;
 
 	} 
 	else {
