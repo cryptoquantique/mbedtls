@@ -342,7 +342,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
         MBEDTLS_PUT_UINT16_BE(group_id, group, 0);
         /* Write key_exchange_length */
         MBEDTLS_PUT_UINT16_BE(key_exchange_len, group, 2);
-	} else
+    } else
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
     if (0 /* other KEMs? */) {
         /* Do something */

@@ -1537,14 +1537,21 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 #define X25519_KEY_SIZE_BYTES 32
 
 struct X25519Kyber768_ctx *fips203ipd_kem;
-void fips203ipd_genkemkey(void);
-void fips203ipd_genkemkey(void)
+int fips203ipd_genkemkey(void);
+int fips203ipd_genkemkey(void)
 {
     uint8_t keygen_seed[64] = { 0 };
-    fips203ipd_kem = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));//malloc(sizeof(struct X25519Kyber768_ctx));
-    rand_bytes(keygen_seed, 32);
-    rand_bytes(&keygen_seed[32], 32);
-    fips203ipd_kem768_keygen(fips203ipd_kem->fips203ipd_ek, fips203ipd_kem->fips203ipd_dk, keygen_seed);
+    fips203ipd_kem = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
+    if(fips203ipd_kem != NULL)
+    {
+        rand_bytes(keygen_seed, 32);
+        rand_bytes(&keygen_seed[32], 32);
+        fips203ipd_kem768_keygen(fips203ipd_kem->fips203ipd_ek, fips203ipd_kem->fips203ipd_dk, keygen_seed);
+        return 0;
+    }
+    else{
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+    }
 }
 
 int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
@@ -1573,8 +1580,10 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
     }
     else 
     {
-        //X25519KYBER768Dreaft00 key		
-        fips203ipd_genkemkey();
+        //X25519KYBER768Dreaft00 key
+        ret = fips203ipd_genkemkey();	
+        if(ret != 0)
+            return ret;
         //ECDSA public key
         if (mbedtls_ssl_get_psa_curve_info_from_tls_id(
                 MBEDTLS_SSL_IANA_TLS_GROUP_X25519, &key_type, &bits) == PSA_SUCCESS)
