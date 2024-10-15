@@ -1535,10 +1535,8 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 #include "rand-bytes.h"
 #include "fips203ipd.h"
 #define X25519_KEY_SIZE_BYTES 32
-
 struct X25519Kyber768_ctx *fips203ipd_kem;
-int fips203ipd_genkemkey(void);
-int fips203ipd_genkemkey(void)
+static int fips203ipd_genkemkey(void)
 {
     uint8_t keygen_seed[64] = { 0 };
     fips203ipd_kem = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
