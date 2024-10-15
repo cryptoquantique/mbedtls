@@ -522,8 +522,8 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
     if (0 /* other KEMs? */) {
         /* Do something */
     }
-	else if(group == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
-	{
+    else if(group == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
+    {
         ret = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
 
         p += 2;//length
@@ -551,7 +551,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
         return 0;
 
 	} 
-	else {
+    else {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
