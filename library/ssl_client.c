@@ -283,7 +283,11 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
                                       *group_list));
         }
     }
-
+	
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_TLS_GROUP_X25519KYBER768, p, 0);
+    p += 2;
+	
     /* Length of named_group_list */
     named_group_list_len = (size_t) (p - named_group_list);
     if (named_group_list_len == 0) {
