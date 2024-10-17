@@ -1532,23 +1532,25 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 }
 #endif /* PSA_WANT_ALG_FFDH */
 
-#include "rand-bytes.h"
 #include "fips203ipd.h"
 #define X25519_KEY_SIZE_BYTES 32
 struct X25519Kyber768_ctx *fips203ipd_kem;
 static int fips203ipd_genkemkey(void)
 {
     uint8_t keygen_seed[64] = { 0 };
+    int ret;
     fips203ipd_kem = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
     if(fips203ipd_kem != NULL)
     {
-        rand_bytes(keygen_seed, 32);
-        rand_bytes(&keygen_seed[32], 32);
-        fips203ipd_kem768_keygen(fips203ipd_kem->fips203ipd_ek, fips203ipd_kem->fips203ipd_dk, keygen_seed);
+        ret = psa_generate_random(keygen_seed, sizeof(keygen_seed));
+        if(ret != 0)
+            return ret;
+        else
+            fips203ipd_kem768_keygen(fips203ipd_kem->fips203ipd_ek, fips203ipd_kem->fips203ipd_dk, keygen_seed);
         return 0;
     }
     else{
-        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
 }
 
