@@ -81,6 +81,7 @@ set(src_crypto
     psa_crypto_storage.c
     psa_its_file.c
     psa_util.c
+	cbd.c indcpa.c kem.c ntt.c poly.c polyvec.c reduce.c symmetric-shake.c verify.c randombytes.c fips202.c
     ripemd160.c
     rsa.c
     rsa_alt_helpers.c
@@ -108,8 +109,6 @@ set(src_x509
 
 set(src_tls
     debug.c
-	fips202.c
-	fips203ipd.c
     mps_reader.c
     mps_trace.c
     net_sockets.c

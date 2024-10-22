@@ -1532,22 +1532,21 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 }
 #endif /* PSA_WANT_ALG_FFDH */
 
-#include "fips203ipd.h"
+#include "kem.h"
 #define X25519_KEY_SIZE_BYTES 32
-struct X25519Kyber768_ctx *fips203ipd_kem;
-static int fips203ipd_genkemkey(void)
+struct X25519Kyber768_ctx *ml_kem768;
+static int ml_kem768_genkemkey(void)
 {
     uint8_t keygen_seed[64] = { 0 };
     int ret;
-    fips203ipd_kem = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
-    if(fips203ipd_kem != NULL)
+    ml_kem768 = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
+    if(ml_kem768 != NULL)
     {
         ret = psa_generate_random(keygen_seed, sizeof(keygen_seed));
         if(ret != 0)
             return ret;
         else
-            fips203ipd_kem768_keygen(fips203ipd_kem->fips203ipd_ek, fips203ipd_kem->fips203ipd_dk, keygen_seed);
-        return 0;
+            return PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(ml_kem768->_ek, ml_kem768->_dk);
     }
     else{
         return PSA_ERROR_INSUFFICIENT_MEMORY;
@@ -1573,7 +1572,7 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
     unsigned char x25519_pubkey[X25519_KEY_SIZE_BYTES];
 
     //ML-KEM768 bytes
-    if(buf_size < FIPS203IPD_KEM768_EK_SIZE+X25519_KEY_SIZE_BYTES) 
+    if(buf_size < KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES) 
     {
         MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: Not enough memory for MBEDTLS_SSL_TLS_GROUP_X25519KYBER768"));
         return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
@@ -1581,7 +1580,7 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
     else 
     {
         //X25519KYBER768Dreaft00 key
-        ret = fips203ipd_genkemkey();	
+        ret = ml_kem768_genkemkey();	
         if(ret != 0)
             return ret;
         //ECDSA public key
@@ -1628,10 +1627,10 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
             return ret;
         }
 
-        *out_len = FIPS203IPD_KEM768_EK_SIZE+X25519_KEY_SIZE_BYTES;
+        *out_len = KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES;
 
         memcpy(buf, x25519_pubkey, X25519_KEY_SIZE_BYTES);
-        memcpy(&buf[X25519_KEY_SIZE_BYTES], fips203ipd_kem->fips203ipd_ek, FIPS203IPD_KEM768_EK_SIZE);
+        memcpy(&buf[X25519_KEY_SIZE_BYTES], ml_kem768->_ek, KYBER_PUBLICKEYBYTES);
     }
     return 0;	
 }

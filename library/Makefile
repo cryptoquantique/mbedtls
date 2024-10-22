@@ -173,6 +173,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_storage.o \
 	     psa_its_file.o \
 	     psa_util.o \
+		 cbd.o indcpa.o kem.o ntt.o poly.o polyvec.o reduce.o symmetric-shake.o verify.o randombytes.o fips202.o \
 	     ripemd160.o \
 	     rsa.o \
 	     rsa_alt_helpers.o \
@@ -204,8 +205,6 @@ OBJS_X509= \
 
 OBJS_TLS= \
 	  debug.o \
-	  fips202.o \
-	  fips203ipd.o \
 	  mps_reader.o \
 	  mps_trace.o \
 	  net_sockets.o \
