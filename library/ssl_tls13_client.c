@@ -467,8 +467,6 @@ static int ssl_tls13_parse_hrr_key_share_ext(mbedtls_ssl_context *ssl,
 
 #include "fips202.h"
 #include "kem.h"
-
-extern struct X25519Kyber768_ctx *ml_kem768;
 /*
  * ssl_tls13_parse_key_share_ext()
  *      Parse key_share extension in Server Hello
@@ -531,13 +529,11 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
         const unsigned char *x25519key = p;
         p += 32;//KEM public key start position
 
-		ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ml_kem768->_ss, p, ml_kem768->_dk);
+		uint8_t k_and_cthash[64];
+		ret = psa_decapsulate_X25519KYBER768Draft00(p, k_and_cthash);
 		if(ret != 0) 
             return ret;
-
-        uint8_t k_and_cthash[64];
         uint8_t kem_ss[32];
-        memcpy(k_and_cthash, ml_kem768->_ss, 32);
 
         ret = mbedtls_sha3(MBEDTLS_SHA3_256, p, end-p, &k_and_cthash[32], 32);
         if(ret != 0) 
@@ -549,7 +545,6 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
         memcpy(handshake->xxdh_psa_peerkey, x25519key, 32);
         memcpy(&handshake->xxdh_psa_peerkey[32], kem_ss, 32);
         handshake->xxdh_psa_peerkey_len = 64;
-        mbedtls_zeroize_and_free(ml_kem768, sizeof(struct X25519Kyber768_ctx));
 
         return 0;
 

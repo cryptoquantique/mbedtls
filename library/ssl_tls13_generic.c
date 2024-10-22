@@ -1534,24 +1534,7 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 
 #include "kem.h"
 #define X25519_KEY_SIZE_BYTES 32
-struct X25519Kyber768_ctx *ml_kem768;
-static int ml_kem768_genkemkey(void)
-{
-    uint8_t keygen_seed[64] = { 0 };
-    int ret;
-    ml_kem768 = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
-    if(ml_kem768 != NULL)
-    {
-        ret = psa_generate_random(keygen_seed, sizeof(keygen_seed));
-        if(ret != 0)
-            return ret;
-        else
-            return PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(ml_kem768->_ek, ml_kem768->_dk);
-    }
-    else{
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
-}
+
 
 int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
     mbedtls_ssl_context *ssl,
@@ -1580,7 +1563,7 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
     else 
     {
         //X25519KYBER768Dreaft00 key
-        ret = ml_kem768_genkemkey();	
+        ret = psa_generate_X25519KYBER768Draft00_key();
         if(ret != 0)
             return ret;
         //ECDSA public key
@@ -1630,7 +1613,7 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
         *out_len = KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES;
 
         memcpy(buf, x25519_pubkey, X25519_KEY_SIZE_BYTES);
-        memcpy(&buf[X25519_KEY_SIZE_BYTES], ml_kem768->_ek, KYBER_PUBLICKEYBYTES);
+		psa_export_X25519KYBER768Draft00_public_key(&buf[X25519_KEY_SIZE_BYTES]);
     }
     return 0;	
 }
