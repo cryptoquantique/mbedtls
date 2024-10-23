@@ -8080,6 +8080,46 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                                    key);
 }
 
+#include "kem.h"
+static struct X25519Kyber768_ctx *ml_kem768;
+psa_status_t psa_generate_X25519KYBER768Draft00_key(void)
+{
+    uint8_t keygen_seed[64] = { 0 };
+    ml_kem768 = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
+    if(ml_kem768 != NULL)
+    {
+        int ret;
+        ret = psa_generate_random(keygen_seed, sizeof(keygen_seed));
+        if(ret != 0)
+            return ret;
+        else
+        {
+            ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(ml_kem768->_ek, ml_kem768->_dk);
+        	if(ret == 0) return PSA_SUCCESS;
+            else return PSA_ERROR_GENERIC_ERROR;
+        }
+    }
+    else{
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+}
+
+psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_text, unsigned char *shared_secret)
+{
+	int ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(shared_secret, cipher_text, ml_kem768->_dk);    
+	mbedtls_zeroize_and_free(ml_kem768, sizeof(struct X25519Kyber768_ctx));
+	if(ret == 0)
+		return PSA_SUCCESS;
+	else
+		return PSA_ERROR_GENERIC_ERROR;
+}
+
+psa_status_t psa_export_X25519KYBER768Draft00_public_key(unsigned char *public_key)
+{
+    memcpy(public_key, ml_kem768->_ek, KYBER_PUBLICKEYBYTES);
+    return PSA_SUCCESS;
+}
+
 /****************************************************************/
 /* Module setup */
 /****************************************************************/

@@ -2199,6 +2199,13 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     size_t *out_len);
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
+int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
+    mbedtls_ssl_context *ssl,
+    uint16_t named_group,
+    unsigned char *buf,
+    unsigned char *end,
+    size_t *out_len);
+
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            int in_new_session_ticket,
