@@ -8081,6 +8081,7 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
 }
 
 #include "kem.h"
+#include "fips202.h"
 static struct X25519Kyber768_ctx *ml_kem768;
 psa_status_t psa_generate_X25519KYBER768Draft00_key(void)
 {
@@ -8104,14 +8105,29 @@ psa_status_t psa_generate_X25519KYBER768Draft00_key(void)
     }
 }
 
-psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_text, unsigned char *shared_secret)
+psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_text_start, const unsigned char *cipher_text_end, uint8_t *kem_ss)
 {
-	int ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(shared_secret, cipher_text, ml_kem768->_dk);    
+	uint8_t k_and_cthash[64];
+	
+	int ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(k_and_cthash, cipher_text_start, ml_kem768->_dk);
 	mbedtls_zeroize_and_free(ml_kem768, sizeof(struct X25519Kyber768_ctx));
 	if(ret == 0)
-		return PSA_SUCCESS;
+	{
+		ret = mbedtls_sha3(MBEDTLS_SHA3_256, cipher_text_start, cipher_text_end - cipher_text_start, &k_and_cthash[32], 32);
+        if(ret == 0)
+		{
+            shake256(kem_ss, 32, k_and_cthash, 64);
+			return PSA_SUCCESS;
+		}
+		else
+		{
+			return ret;
+		}
+	}
 	else
+	{
 		return PSA_ERROR_GENERIC_ERROR;
+	}
 }
 
 psa_status_t psa_export_X25519KYBER768Draft00_public_key(unsigned char *public_key)

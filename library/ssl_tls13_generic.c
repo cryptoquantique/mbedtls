@@ -1567,37 +1567,9 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
         if(ret != 0)
             return ret;
         //ECDSA public key
-        if (mbedtls_ssl_get_psa_curve_info_from_tls_id(
-                MBEDTLS_SSL_IANA_TLS_GROUP_X25519, &key_type, &bits) == PSA_SUCCESS)
-        {
-            alg = PSA_ALG_ECDH;
-        }
-        if (key_type == PSA_KEY_TYPE_NONE) {
-            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-        }
-
-        if (buf_size < PSA_BITS_TO_BYTES(bits)) {
-            return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
-        }
-
-        handshake->xxdh_psa_type = key_type;
-        ssl->handshake->xxdh_psa_bits = bits;
-
-        key_attributes = psa_key_attributes_init();
-        psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
-        psa_set_key_algorithm(&key_attributes, alg);
-        psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
-        psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
-
-        //Generate ECDH private key.
-        status = psa_generate_key(&key_attributes,
-                                    &handshake->xxdh_psa_privkey);
-        if (status != PSA_SUCCESS) {
-            ret = PSA_TO_MBEDTLS_ERR(status);
-            MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
-            return ret;
-
-        }
+		/*
+			The X25519 keypair generated earlier is re-used here. 
+		*/
 
         //Export the public part of the ECDH private key from PSA.
         status = psa_export_public_key(handshake->xxdh_psa_privkey,

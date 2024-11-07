@@ -4214,7 +4214,7 @@ psa_status_t psa_generate_random(uint8_t *output,
 psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               mbedtls_svc_key_id_t *key);
 psa_status_t psa_generate_X25519KYBER768Draft00_key(void);    
-psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_text, unsigned char *shared_secret);
+psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_text_start, const unsigned char *cipher_text_end, uint8_t *kem_ss);
 psa_status_t psa_export_X25519KYBER768Draft00_public_key(unsigned char *public_key);                          
 
 /**
