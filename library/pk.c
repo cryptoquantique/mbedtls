@@ -223,6 +223,33 @@ int mbedtls_pk_setup_rsa_alt(mbedtls_pk_context *ctx, void *key,
 
     return 0;
 }
+
+int mbedtls_pk_setup_rsa_pss(mbedtls_pk_context *ctx, void *key,
+                             mbedtls_pk_rsa_alt_decrypt_func decrypt_func,
+                             mbedtls_pk_rsa_alt_sign_func sign_func,
+                             mbedtls_pk_rsa_alt_key_len_func key_len_func)
+{
+    mbedtls_rsa_pss_context *rsa_pss;
+    const mbedtls_pk_info_t *info = &mbedtls_rsa_pss_info_for_ds;
+    if (ctx->pk_info != NULL) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    if ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL) {
+        return MBEDTLS_ERR_PK_ALLOC_FAILED;
+    }
+
+    ctx->pk_info = info;
+
+    rsa_pss = (mbedtls_rsa_pss_context *) ctx->pk_ctx;
+
+    rsa_pss->key = key;
+    rsa_pss->decrypt_func = decrypt_func;
+    rsa_pss->sign_func = sign_func;
+    rsa_pss->key_len_func = key_len_func;
+
+    return 0;
+}
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /*
@@ -1308,6 +1335,14 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     if (ctx->pk_info == NULL) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
+
+	if(pk_type == MBEDTLS_PK_RSASSA_PSS)
+	{
+		mbedtls_rsa_pss_context *rsa_pss = (mbedtls_rsa_pss_context *) ctx->pk_ctx;
+		int ret_pss = rsa_pss->sign_func(ctx, f_rng, p_rng, md_alg, hash_len, hash, sig); 
+		*sig_len = 384;
+		return ret_pss;
+	}
 
     if (!mbedtls_pk_can_do(ctx, pk_type)) {
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;

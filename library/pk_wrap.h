@@ -102,10 +102,18 @@ typedef struct {
     mbedtls_pk_rsa_alt_sign_func sign_func;
     mbedtls_pk_rsa_alt_key_len_func key_len_func;
 } mbedtls_rsa_alt_context;
+
+typedef struct {
+    void *key;
+    mbedtls_pk_rsa_alt_decrypt_func decrypt_func;
+    mbedtls_pk_rsa_alt_sign_func sign_func;
+    mbedtls_pk_rsa_alt_key_len_func key_len_func;
+} mbedtls_rsa_pss_context;
 #endif
 
 #if defined(MBEDTLS_RSA_C)
 extern const mbedtls_pk_info_t mbedtls_rsa_info;
+extern const mbedtls_pk_info_t mbedtls_rsa_pss_info_for_ds;
 #endif
 
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
