@@ -509,6 +509,27 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     .ctx_free_func = rsa_free_wrap,
     .debug_func = rsa_debug,
 };
+
+const mbedtls_pk_info_t mbedtls_rsa_pss_info_for_ds = {
+    .type = MBEDTLS_PK_RSA,
+    .name = "RSA-PSS for DS",
+    .get_bitlen = rsa_get_bitlen,
+    .can_do = rsa_can_do,
+    .verify_func = NULL,
+    .sign_func = NULL,
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    .verify_rs_func = NULL,
+    .sign_rs_func = NULL,
+    .rs_alloc_func = NULL,
+    .rs_free_func = NULL,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+    .decrypt_func = rsa_decrypt_wrap,
+    .encrypt_func = rsa_encrypt_wrap,
+    .check_pair_func = rsa_check_pair_wrap,
+    .ctx_alloc_func = rsa_alloc_wrap,
+    .ctx_free_func = NULL,
+    .debug_func = rsa_debug,
+};
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
