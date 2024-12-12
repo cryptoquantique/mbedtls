@@ -418,12 +418,6 @@ int mbedtls_pk_setup_rsa_alt(mbedtls_pk_context *ctx, void *key,
                              mbedtls_pk_rsa_alt_decrypt_func decrypt_func,
                              mbedtls_pk_rsa_alt_sign_func sign_func,
                              mbedtls_pk_rsa_alt_key_len_func key_len_func);
-int mbedtls_pk_setup_rsa_pss(mbedtls_pk_context *ctx, void *key,
-                             mbedtls_pk_rsa_alt_decrypt_func decrypt_func,
-                             mbedtls_pk_rsa_alt_sign_func sign_func,
-                             mbedtls_pk_rsa_alt_key_len_func key_len_func);
-
-							 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /**
