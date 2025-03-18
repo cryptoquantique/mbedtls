@@ -20,7 +20,7 @@ int PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(uint8_t *ct, uint8_t *ss, const uint8_
 
 int PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
 
-struct X25519Kyber768_ctx
+struct X25519MLKEM768_ctx
 {
 	uint8_t _ek[KYBER_PUBLICKEYBYTES]; // encapsulation key
 	uint8_t _dk[KYBER_SECRETKEYBYTES]; // decapsulation key

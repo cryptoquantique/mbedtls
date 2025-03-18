@@ -8082,11 +8082,11 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
 
 #include "kem.h"
 #include "fips202.h"
-static struct X25519Kyber768_ctx *ml_kem768;
-psa_status_t psa_generate_X25519KYBER768Draft00_key(void)
+static struct X25519MLKEM768_ctx *ml_kem768;
+psa_status_t psa_generate_X25519MLKEM768_key(void)
 {
     uint8_t keygen_seed[64] = { 0 };
-    ml_kem768 = mbedtls_calloc(1, sizeof(struct X25519Kyber768_ctx));
+    ml_kem768 = mbedtls_calloc(1, sizeof(struct X25519MLKEM768_ctx));
     if(ml_kem768 != NULL)
     {
         int ret;
@@ -8105,18 +8105,18 @@ psa_status_t psa_generate_X25519KYBER768Draft00_key(void)
     }
 }
 
-psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_text_start, const unsigned char *cipher_text_end, uint8_t *kem_ss)
+psa_status_t psa_decapsulate_X25519MLKEM768(const unsigned char *cipher_text_start, const unsigned char *cipher_text_end, uint8_t *kem_ss)
 {
 	uint8_t k_and_cthash[64];
 	
 	int ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(k_and_cthash, cipher_text_start, ml_kem768->_dk);
-	mbedtls_zeroize_and_free(ml_kem768, sizeof(struct X25519Kyber768_ctx));
+	mbedtls_zeroize_and_free(ml_kem768, sizeof(struct X25519MLKEM768_ctx));
 	if(ret == 0)
 	{
 		ret = mbedtls_sha3(MBEDTLS_SHA3_256, cipher_text_start, cipher_text_end - cipher_text_start, &k_and_cthash[32], 32);
         if(ret == 0)
 		{
-            shake256(kem_ss, 32, k_and_cthash, 64);
+            // shake256(kem_ss, 32, k_and_cthash, 64);
 			return PSA_SUCCESS;
 		}
 		else
@@ -8130,7 +8130,7 @@ psa_status_t psa_decapsulate_X25519KYBER768Draft00(const unsigned char *cipher_t
 	}
 }
 
-psa_status_t psa_export_X25519KYBER768Draft00_public_key(unsigned char *public_key)
+psa_status_t psa_export_X25519MLKEM768_public_key(unsigned char *public_key)
 {
     memcpy(public_key, ml_kem768->_ek, KYBER_PUBLICKEYBYTES);
     return PSA_SUCCESS;

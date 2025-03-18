@@ -1536,7 +1536,7 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 #define X25519_KEY_SIZE_BYTES 32
 
 
-int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_X25519MLKEM768_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,
@@ -1544,26 +1544,22 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
     size_t *out_len)
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    size_t bits = 0;
     size_t buf_size = (size_t) (end - buf);
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    psa_key_attributes_t key_attributes;
     size_t own_pubkey_len;
-    psa_algorithm_t alg = PSA_ALG_ECDH;
-    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     unsigned char x25519_pubkey[X25519_KEY_SIZE_BYTES];
 
     //ML-KEM768 bytes
     if(buf_size < KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES) 
     {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: Not enough memory for MBEDTLS_SSL_TLS_GROUP_X25519KYBER768"));
+        MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: Not enough memory for MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
         return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
     }
     else 
     {
-        //X25519KYBER768Dreaft00 key
-        ret = psa_generate_X25519KYBER768Draft00_key();
+        // X25519MLKEM768 key
+        ret = psa_generate_X25519MLKEM768_key();
         if(ret != 0)
             return ret;
         //ECDSA public key
@@ -1585,7 +1581,7 @@ int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
         *out_len = KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES;
 
         memcpy(buf, x25519_pubkey, X25519_KEY_SIZE_BYTES);
-		psa_export_X25519KYBER768Draft00_public_key(&buf[X25519_KEY_SIZE_BYTES]);
+		psa_export_X25519MLKEM768_public_key(&buf[X25519_KEY_SIZE_BYTES]);
     }
     return 0;	
 }

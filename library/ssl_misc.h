@@ -2199,7 +2199,7 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     size_t *out_len);
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
-int mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_X25519MLKEM768_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,

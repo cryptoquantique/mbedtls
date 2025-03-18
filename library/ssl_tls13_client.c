@@ -183,7 +183,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id) ||
         mbedtls_ssl_tls13_named_group_is_ffdh(group_id) ||
-		(group_id == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)) {
+		(group_id == MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -337,17 +337,17 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
     }
 	
 	/* 
-		2nd keyshare extension for X25519KYBER76Draft00
-		SM: It is forced to set the group_id as MBEDTLS_SSL_TLS_GROUP_X25519KYBER768
+		2nd keyshare extension for X25519MLKEM768
+		SM: It is forced to set the group_id as MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768
 			Based on the sever hello negotiation logic will be .
 	*/
-	group_id = MBEDTLS_SSL_TLS_GROUP_X25519KYBER768;
-	MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: adding key share extension for MBEDTLS_SSL_TLS_GROUP_X25519KYBER768"));
+	group_id = MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768;
+	MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: adding key share extension for MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
 	unsigned char *group = p;
 	size_t key_exchange_len = 0;
 	MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
 	p += 4;
-	mbedtls_ssl_tls13_generate_and_write_X25519Kyber768_key_exchange(
+	mbedtls_ssl_tls13_generate_and_write_X25519MLKEM768_key_exchange(
 		ssl, group_id, p, end, &key_exchange_len);
 	p += key_exchange_len;
 	/* Write group */
@@ -503,7 +503,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
     offered_group = ssl->handshake->offered_group_id;
 	
 	/*SM: If server doesnt support hybrid Kyber we reset all our setting */
-	if((offered_group == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768) && (offered_group != group))
+	if((offered_group == MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768) && (offered_group != group))
 	{
 		if(mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
 		 mbedtls_ssl_tls13_named_group_is_ffdh(group))
@@ -533,18 +533,18 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
     if (0 /* other KEMs? */) {
         /* Do something */
     }
-    else if(group == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
+    else if(group == MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768)
     {
         ret = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
 		
-		MBEDTLS_SSL_DEBUG_MSG(2,("Group name: MBEDTLS_SSL_TLS_GROUP_X25519KYBER768"));
+		MBEDTLS_SSL_DEBUG_MSG(2,("Group name: MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
 
         p += 2;//length
         const unsigned char *x25519key = p;
         p += 32;//KEM public key start position
 
 		uint8_t kem_ss[32];
-		ret = psa_decapsulate_X25519KYBER768Draft00(p, end, kem_ss);
+		ret = psa_decapsulate_X25519MLKEM768(p, end, kem_ss);
 		if(ret != 0) 
             return ret;
 

@@ -1523,9 +1523,9 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
         } 
-        else if(handshake->offered_group_id == MBEDTLS_SSL_TLS_GROUP_X25519KYBER768)
+        else if(handshake->offered_group_id == MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768)
         {
-			MBEDTLS_SSL_DEBUG_MSG(2, ("\nMBEDTLS_SSL_TLS_GROUP_X25519KYBER768 is in use\n"));
+			MBEDTLS_SSL_DEBUG_MSG(2, ("Using MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
             psa_algorithm_t alg = PSA_ALG_ECDH;
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
