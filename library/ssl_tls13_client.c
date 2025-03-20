@@ -533,30 +533,28 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
     if (0 /* other KEMs? */) {
         /* Do something */
     }
-    else if(group == MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768)
+    else if (group == MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768)
     {
         ret = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-		
-		MBEDTLS_SSL_DEBUG_MSG(2,("Group name: MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
+        MBEDTLS_SSL_DEBUG_MSG(2, ("Group name: MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
 
-        p += 2;//length
-        const unsigned char *x25519key = p;
-        p += 32;//KEM public key start position
-
-		uint8_t kem_ss[32];
-		ret = psa_decapsulate_X25519MLKEM768(p, end, kem_ss);
-		if(ret != 0) 
+        p += 2; //length
+        int ctsize = end - 32 - p;
+        uint8_t kem_ss[32];
+        ret = psa_decapsulate_X25519MLKEM768(p, kem_ss);
+        if (ret != 0) 
             return ret;
-
+        
+        p += ctsize; // x25519 key offset
+        const unsigned char *x25519key = p;
+        
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-
-        memcpy(handshake->xxdh_psa_peerkey, x25519key, 32);
-        memcpy(&handshake->xxdh_psa_peerkey[32], kem_ss, 32);
+        memcpy(handshake->xxdh_psa_peerkey, kem_ss, 32);
+        memcpy(&handshake->xxdh_psa_peerkey[32], x25519key, 32);
         handshake->xxdh_psa_peerkey_len = 64;
 
         return 0;
-
-	} 
+    }
     else {
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }

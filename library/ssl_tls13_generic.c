@@ -1580,8 +1580,8 @@ int mbedtls_ssl_tls13_generate_and_write_X25519MLKEM768_key_exchange(
 
         *out_len = KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES;
 
-        memcpy(buf, x25519_pubkey, X25519_KEY_SIZE_BYTES);
-		psa_export_X25519MLKEM768_public_key(&buf[X25519_KEY_SIZE_BYTES]);
+        psa_export_X25519MLKEM768_public_key(buf);
+        memcpy(buf+KYBER_PUBLICKEYBYTES, x25519_pubkey, X25519_KEY_SIZE_BYTES);
     }
     return 0;	
 }

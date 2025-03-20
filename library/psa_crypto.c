@@ -8087,45 +8087,35 @@ psa_status_t psa_generate_X25519MLKEM768_key(void)
 {
     uint8_t keygen_seed[64] = { 0 };
     ml_kem768 = mbedtls_calloc(1, sizeof(struct X25519MLKEM768_ctx));
-    if(ml_kem768 != NULL)
-    {
+    if (ml_kem768 != NULL) {
         int ret;
         ret = psa_generate_random(keygen_seed, sizeof(keygen_seed));
-        if(ret != 0)
+        if (ret != 0) {
             return ret;
-        else
-        {
+        }
+        else {
             ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(ml_kem768->_ek, ml_kem768->_dk);
-        	if(ret == 0) return PSA_SUCCESS;
-            else return PSA_ERROR_GENERIC_ERROR;
+        	if (ret == 0) {
+                return PSA_SUCCESS;
+            }
+            else {
+                return PSA_ERROR_GENERIC_ERROR;
+            }
         }
     }
-    else{
+    else {
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
 }
 
-psa_status_t psa_decapsulate_X25519MLKEM768(const unsigned char *cipher_text_start, const unsigned char *cipher_text_end, uint8_t *kem_ss)
-{
-	uint8_t k_and_cthash[64];
-	
-	int ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(k_and_cthash, cipher_text_start, ml_kem768->_dk);
+psa_status_t psa_decapsulate_X25519MLKEM768(const unsigned char *cipher_text_start, uint8_t *kem_ss)
+{	
+	int ret = PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(kem_ss, cipher_text_start, ml_kem768->_dk);
 	mbedtls_zeroize_and_free(ml_kem768, sizeof(struct X25519MLKEM768_ctx));
-	if(ret == 0)
-	{
-		ret = mbedtls_sha3(MBEDTLS_SHA3_256, cipher_text_start, cipher_text_end - cipher_text_start, &k_and_cthash[32], 32);
-        if(ret == 0)
-		{
-            // shake256(kem_ss, 32, k_and_cthash, 64);
-			return PSA_SUCCESS;
-		}
-		else
-		{
-			return ret;
-		}
+	if(ret == 0) {
+		return PSA_SUCCESS;
 	}
-	else
-	{
+	else {
 		return PSA_ERROR_GENERIC_ERROR;
 	}
 }

@@ -1544,15 +1544,15 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
 
             //Need to retrieve the KEM768's SS as it is reset by psa_raw_key_agreement().
             uint8_t tmp_kem768_ss[32];
-            memcpy(tmp_kem768_ss, &handshake->xxdh_psa_peerkey[32], 32);
-            status = psa_raw_key_agreement(alg, handshake->xxdh_psa_privkey,handshake->xxdh_psa_peerkey, 32, shared_secret, 32, &shared_secret_len);
+            memcpy(tmp_kem768_ss, handshake->xxdh_psa_peerkey, 32);
+            status = psa_raw_key_agreement(alg, handshake->xxdh_psa_privkey, &handshake->xxdh_psa_peerkey[32], 32, &shared_secret[32], 32, &shared_secret_len);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
                 MBEDTLS_SSL_DEBUG_RET(1, "psa_raw_key_agreement", ret);
                 goto cleanup;
             }
-            else{
-                memcpy(&shared_secret[32], tmp_kem768_ss, 32);
+            else {
+                memcpy(shared_secret, tmp_kem768_ss, 32);
                 shared_secret_len += 32;
             }
 
