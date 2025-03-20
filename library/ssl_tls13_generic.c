@@ -1532,6 +1532,60 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
 }
 #endif /* PSA_WANT_ALG_FFDH */
 
+#include "kem.h"
+#define X25519_KEY_SIZE_BYTES 32
+
+
+int mbedtls_ssl_tls13_generate_and_write_X25519MLKEM768_key_exchange(
+    mbedtls_ssl_context *ssl,
+    uint16_t named_group,
+    unsigned char *buf,
+    unsigned char *end,
+    size_t *out_len)
+{
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    size_t buf_size = (size_t) (end - buf);
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    size_t own_pubkey_len;
+    unsigned char x25519_pubkey[X25519_KEY_SIZE_BYTES];
+
+    //ML-KEM768 bytes
+    if(buf_size < KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES) 
+    {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("client hello: Not enough memory for MBEDTLS_SSL_TLS_GROUP_X25519MLKEM768"));
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+    }
+    else 
+    {
+        // X25519MLKEM768 key
+        ret = psa_generate_X25519MLKEM768_key();
+        if(ret != 0)
+            return ret;
+        //ECDSA public key
+		/*
+			The X25519 keypair generated earlier is re-used here. 
+		*/
+
+        //Export the public part of the ECDH private key from PSA.
+        status = psa_export_public_key(handshake->xxdh_psa_privkey,
+                                        x25519_pubkey, X25519_KEY_SIZE_BYTES,
+                                        &own_pubkey_len);
+
+        if (status != PSA_SUCCESS) {
+            ret = PSA_TO_MBEDTLS_ERR(status);
+            MBEDTLS_SSL_DEBUG_RET(1, "psa_export_public_key", ret);
+            return ret;
+        }
+
+        *out_len = KYBER_PUBLICKEYBYTES+X25519_KEY_SIZE_BYTES;
+
+        psa_export_X25519MLKEM768_public_key(buf);
+        memcpy(buf+KYBER_PUBLICKEYBYTES, x25519_pubkey, X25519_KEY_SIZE_BYTES);
+    }
+    return 0;	
+}
+
 int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
